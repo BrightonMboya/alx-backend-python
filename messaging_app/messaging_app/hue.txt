@@ -1,0 +1,16 @@
+Checks Using viewsets from rest-framework Create viewsets for listing conversations (ConversationViewSet) and messages (MessageViewSet)
+file_contains("chats/views.py", ["viewsets", "status", "filters", "class ConversationViewSet", "class MessageViewSet"])
+
+
+Checks for Implement the endpoints to create a new conversation and send messages to an existing one
+file_contains("chats/urls.py", ["from django.urls import", "path", "include", "routers.DefaultRouter()"])
+
+
+Checks for `urls.py` file if exists 
+op_and(files_exist(["chats/urls.py"]), !files_empty(["chats/urls.py"]))
+
+
+Checks for addition of the new api urls on messaging_app
+file_contains("messaging_app/urls.py", ["path", "include", "api/"])
+
+
