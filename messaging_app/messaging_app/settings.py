@@ -25,3 +25,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# messaging_app/settings.py
+AUTH_USER_MODEL = 'chats.User'
