@@ -19,9 +19,12 @@ from django.urls import path, include
 
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/register/', RegisterView.as_view(), name='register'),
+    path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='login'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # API endpoints
     path('api/', include('chats.urls')),
-    # DRF auth URLs (for browsable API)
-    path('api-auth/', include('rest_framework.urls')),
 ]
