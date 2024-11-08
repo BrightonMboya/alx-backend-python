@@ -1,7 +1,9 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from .models import Message, Notification, MessageHistory
 from django.utils import timezone
+from django.contrib.auth.models import User
+
 
 @receiver(post_save, sender=Message)
 def create_notification(sender, instance, created, **kwargs):
@@ -33,3 +35,28 @@ def track_message_history(sender, instance, **kwargs):
                 instance.last_edited = timezone.now()
         except Message.DoesNotExist:
             pass
+
+
+@receiver(post_delete, sender=User)
+def cleanup_user_data(sender, instance, **kwargs):
+    """
+    Signal handler to clean up all related data when a user is deleted.
+    Note: Most deletions will be handled by CASCADE, this is a backup.
+    """
+    # Clean up any remaining messages
+    Message.objects.filter(
+        sender=instance
+    ).delete()
+    Message.objects.filter(
+        receiver=instance
+    ).delete()
+    
+    # Clean up any remaining notifications
+    Notification.objects.filter(
+        user=instance
+    ).delete()
+    
+    # Clean up any remaining message histories
+    MessageHistory.objects.filter(
+        edited_by=instance
+    ).delete()

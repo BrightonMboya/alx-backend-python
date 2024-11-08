@@ -6,61 +6,40 @@ class Message(models.Model):
     sender = models.ForeignKey(
         User, 
         related_name='sent_messages',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE  # Will delete messages when user is deleted
     )
     receiver = models.ForeignKey(
         User,
         related_name='received_messages',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE  # Will delete messages when user is deleted
     )
     content = models.TextField()
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-    edited = models.BooleanField(default=False)
-    last_edited = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"From {self.sender} to {self.receiver} at {self.timestamp}"
     
 class MessageHistory(models.Model):
     message = models.ForeignKey(
         Message,
         related_name='history',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE  # Will delete history when message is deleted
     )
-    old_content = models.TextField()
-    edited_at = models.DateTimeField(default=timezone.now)
     edited_by = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL,  # Keep history but set user to NULL when deleted
         null=True
     )
-
-    class Meta:
-        ordering = ['-edited_at']
-        verbose_name_plural = 'Message histories'
-
-    def __str__(self):
-        return f"Edit history for message {self.message.id} at {self.edited_at}"
+    old_content = models.TextField()
+    edited_at = models.DateTimeField(auto_now_add=True)
 
 class Notification(models.Model):
     user = models.ForeignKey(
         User,
         related_name='notifications',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE  # Will delete notifications when user is deleted
     )
     message = models.ForeignKey(
         Message,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE  # Will delete notifications when message is deleted
     )
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"Notification for {self.user} - Message from {self.message.sender}"
