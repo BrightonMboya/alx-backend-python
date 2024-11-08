@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
 
-class Message(MPTTModel):
+class Message(models.Model):
     sender = models.ForeignKey(
         User, 
         related_name='sent_messages',
@@ -16,28 +16,23 @@ class Message(MPTTModel):
     )
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.now)
-    is_read = models.BooleanField(default=False)
-    parent_message = TreeForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='replies'
-    )
+    read = models.BooleanField(default=False)
     
-    class MPTTMeta:
-        order_insertion_by = ['timestamp']
+    # Managers
+    objects = models.Manager()  # Default manager
+    unread = UnreadMessagesManager()  # Custom manager for unread messages
     
     class Meta:
-        ordering = ['tree_id', 'lft']
+        ordering = ['-timestamp']
     
     def __str__(self):
         return f"From {self.sender} to {self.receiver} at {self.timestamp}"
     
-    @property
-    def thread_id(self):
-        """Return the ID of the root message in this thread"""
-        return self.get_root().id
+    def mark_as_read(self):
+        """Mark individual message as read"""
+        if not self.read:
+            self.read = True
+            self.save(update_fields=['read'])
     
 class MessageHistory(models.Model):
     message = models.ForeignKey(

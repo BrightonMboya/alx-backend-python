@@ -76,3 +76,41 @@ def conversation_detail(request, message_id):
         'thread_messages': thread_messages,
         'form': form
     })
+
+
+@login_required
+def inbox(request):
+    """Display user's inbox with unread messages highlighted"""
+    # Get unread messages using the custom manager
+    unread_messages = Message.unread.unread_for_user(request.user)
+    
+    # Get all messages with read status
+    all_messages = (
+        Message.objects.filter(receiver=request.user)
+        .select_related('sender')
+        .only(
+            'sender__username',
+            'content',
+            'timestamp',
+            'read'
+        )
+        .order_by('-timestamp')
+    )
+    
+    # Get unread count
+    unread_count = unread_messages.count()
+    
+    return render(request, 'messaging/inbox.html', {
+        'unread_messages': unread_messages,
+        'all_messages': all_messages,
+        'unread_count': unread_count,
+    })
+
+@login_required
+def mark_messages_read(request):
+    """Mark selected messages as read"""
+    if request.method == 'POST':
+        message_ids = request.POST.getlist('message_ids[]')
+        Message.unread.mark_as_read(message_ids, request.user)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
